@@ -70,29 +70,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ─── Reverse Proxy + SSL ────────────────────────────────
+# ─── Reverse Proxy + SSL ────────────────────────────────
   caddy:
     image: caddy:2-alpine
     # --resume restores the last config persisted by Caddy's autosave
-    # (written to /config/caddy/autosave.json after every admin API reload).
-    # First boot: no autosave exists → falls back to Caddyfile (wizard mode).
-    # Post-wizard restart: loads autosave → instant HTTPS without re-running
-    # the wizard. Without --resume the container would revert to wizard mode
-    # on every restart and trap the user in an infinite redirect.
     command: caddy run --resume --config /etc/caddy/Caddyfile --adapter caddyfile
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"    # HTTP/3
+    # ENTFERNT: ports: - "80:80", - "443:443" etc., da Easypanel Port 80/443 bereits belegt.
+    # Caddy läuft nun rein intern und ist über das Docker-Netzwerk erreichbar.
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data       # SSL certs persisted across restarts
-      - caddy_config:/config   # admin-API-written runtime config persists here
+      - caddy_config:/config   # runtime config from admin API
       - ./uploads:/srv/uploads:ro
-    # No ACME_EMAIL / APP_DOMAIN env — initial Caddyfile is HTTP-only and the
-    # wizard injects the post-setup config (with email + domains) via the
-    # admin API. Port 2019 is exposed only on the internal docker network.
     expose:
+      - "80"
+      - "443"
       - "2019"
     depends_on:
       - web
