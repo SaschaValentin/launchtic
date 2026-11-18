@@ -124,3 +124,8 @@ volumes:
   redis_data:
   caddy_data:      # SSL certs
   caddy_config:    # runtime config from admin API
+
+networks:
+  default:
+    name: easypanel
+    external: true  
